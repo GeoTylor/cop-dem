@@ -27,6 +27,7 @@ from shapely.geometry import mapping, box, shape as make_shape
 from pystac import Item
 
 from stactools.core.io import ReadHrefModifier
+from stactools.core.utils import href_exists
 from stactools.cop_dem import constants as co
 
 
@@ -107,6 +108,77 @@ def create_item(
 
     item.add_asset("data", data_asset)
     RasterExtension.ext(data_asset, add_if_missing=True).bands = [data_bands]
+
+    # add additional assets
+    full_asset_switch_tbd = True
+    if full_asset_switch_tbd:
+        home = os.path.dirname(href)
+        cog_tile = os.path.basename(home).replace("_DEM", "")
+        tile = cog_tile.replace("_COG", "")
+
+        meta_assets = {
+            "metadata": {
+                "href": os.path.join(home, f"{tile}.xml"),
+                "title": "Metadata",
+                "description": "ISO 19115 compliant item metadata in xml format",
+                "type": MediaType.XML,
+                "roles": ["metadata", "accuracy-mask"],
+            },
+            "source_mask": {
+                "href": os.path.join(home, "PREVIEW", f"{tile}_SRC.kml"),
+                "title": "Source Scenes (SRC)",
+                "description": "Footprints of source scenes used to derive the DEM layer, xml vector format",
+                "type": "application/vnd.google-earth.kml+xml",
+                "roles": ["metadata", "source-mask"],
+            },
+            "editing_mask": {
+                "href": os.path.join(home, "AUXFILES", f"{cog_tile}_EDM.tif"),
+                "title": "Editing Mask (EDM)",
+                "description": "Mask indicating whether a pixel was edited (see specification for more details)",
+                "type": MediaType.GEOTIFF,
+                "roles": ["metadata", "editing-mask"],
+            },
+            "filling_mask": {
+                "href": os.path.join(home, "AUXFILES", f"{cog_tile}_FLM.tif"),
+                "title": "Filling Mask (FLM)",
+                "description": "Mask indicating whether a pixel was filled from external sources including fill source (see specification for more details)",
+                "type": MediaType.GEOTIFF,
+                "roles": ["metadata", "filling-mask"],
+            },
+            "water_body_mask": {
+                "href": os.path.join(home, "AUXFILES", f"{cog_tile}_WBM.tif"),
+                "title": "Water Body Mask (WBM)",
+                "description": "Mask indicating whether a pixel is a modified water pixel (see specification for more details)",
+                "type": MediaType.GEOTIFF,
+                "roles": ["metadata", "water-mask"],
+            },
+            "height_error_mask": {
+                "href": os.path.join(home, "AUXFILES", f"{cog_tile}_HEM.tif"),
+                "title": "Height Error Mask (HEM)",
+                "description": "Mask indicating height error as standard deviation for each DEM pixel (see specification for more details)",
+                "type": MediaType.GEOTIFF,
+                "roles": ["metadata", "error-mask"],
+            },
+            "vertical_accuracy_mask": {
+                "href": os.path.join(home, "AUXFILES", f"{tile}_ACM.kml"),
+                "title": "Vertical Accuracy Mask (ACM)",
+                "description": "The Accuracy Layer provides the absolute, vertical accuracy information expressed in the estimated mean (68%) and maximum (90%) vertical accuracy per delivery unit as a vector file (KML format)",
+                "type": "application/vnd.google-earth.kml+xml",
+                "roles": ["metadata", "accuracy-mask"],
+            },
+        }
+
+        for meta_asset_key, meta_asset in meta_assets.items():
+            if meta_asset["href"].startswith("http"):
+                meta_asset["href"] = meta_asset["href"].replace(os.sep, "/") # Windows OS backslash handling
+            if href_exists(meta_asset["href"]):
+                item.add_asset(meta_asset_key, Asset(
+                    href=meta_asset["href"],
+                    title=meta_asset["title"],
+                    description=meta_asset["description"],
+                    media_type=meta_asset["type"],
+                    roles=meta_asset["roles"]
+                ))
 
     projection = ProjectionExtension.ext(item, add_if_missing=True)
     projection.epsg = co.COP_DEM_EPSG
