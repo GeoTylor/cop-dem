@@ -62,10 +62,54 @@ COP_DEM_LINKS = [
 ]
 
 COP_DEM_ASSETS = {
-    "data": AssetDefinition({
+    "elevation": AssetDefinition({
         "type": MediaType.COG,
+        "title": "Digital Elevation Model (DEM)",
+        "description": "Orthometric heights in meters",
         "roles": ["data"],
-    })
+    }),
+    "metadata": AssetDefinition({
+        "type": MediaType.XML,
+        "title": "Metadata",
+        "description": "ISO 19115 compliant item metadata in xml format",
+        "roles": ["metadata"],
+    }),
+    "source_mask": AssetDefinition({
+        "type": "application/vnd.google-earth.kml+xml",
+        "title": "Source Scenes (SRC)",
+        "description": "Footprints of source scenes used to derive the DEM layer, xml vector format",
+        "roles": ["metadata", "source-mask"],
+    }),
+    "editing_mask": AssetDefinition({
+        "type": MediaType.GEOTIFF,
+        "title": "Editing Mask (EDM)",
+        "description": "Mask indicating whether a pixel was edited (see specification for more details)",
+        "roles": ["metadata", "editing-mask"],
+    }),
+    "filling_mask": AssetDefinition({
+        "type": MediaType.GEOTIFF,
+        "title": "Filling Mask (FLM)",
+        "description": "Mask indicating whether a pixel was filled including fill source (see specification for more details)",
+        "roles": ["metadata", "filling-mask"],
+    }),
+    "water_body_mask": AssetDefinition({
+        "type": MediaType.GEOTIFF,
+        "title": "Water Body Mask (WBM)",
+        "description": "Mask indicating whether a pixel is a modified water pixel (see specification for more details)",
+        "roles": ["metadata", "water-mask"],
+    }),
+    "height_error_mask": AssetDefinition({
+        "type": MediaType.GEOTIFF,
+        "title": "Height Error Mask (HEM)",
+        "description": "Mask indicating height error as standard deviation for each DEM pixel (see specification for more details)",
+        "roles": ["metadata", "error-mask"],
+    }),
+    "vertical_accuracy_mask": AssetDefinition({
+        "type": "application/vnd.google-earth.kml+xml",
+        "title": "Vertical Accuracy Mask (ACM)",
+        "description": "The Accuracy Layer provides the absolute, vertical accuracy information expressed in the estimated mean (68%) and maximum (90%) vertical accuracy per delivery unit as a vector file (KML format)",
+        "roles": ["metadata", "accuracy-mask"],
+    }),
 }
 
 COP_DEM_DESCRIPTION = '''The Copernicus DEM is a Digital Surface Model (DSM) which represents the surface of the Earth including buildings, infrastructure and vegetation. We provide two instances of Copernicus DEM named GLO-30 Public and GLO-90. GLO-90 provides worldwide coverage at 90 meters. GLO-30 Public provides limited worldwide coverage at 30 meters because a small subset of tiles covering specific countries are not yet released to the public by the Copernicus Programme. Note that in both cases ocean areas do not have tiles, there one can assume height values equal to zero. Data is provided as Cloud Optimized GeoTIFFs and comes from Copernicus DEM 2021 release.'''  # noqa: E501
